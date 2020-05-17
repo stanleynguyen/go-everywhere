@@ -1,72 +1,102 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/gorilla/websocket"
+	"os"
+	"os/exec"
+	"sync"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+type lightState int
+
+func (s lightState) string() string {
+	switch s {
+	case on:
+		return "ON"
+	case off:
+		fallthrough
+	default:
+		return "OFF"
+	}
 }
 
-// ON indicate that light is on, can be sent to client
-const ON = "ON"
+const (
+	on = lightState(iota)
+	off
+)
 
-// OFF indicate that light is off, can be sent to client
-const OFF = "OFF"
+type light struct {
+	state lightState
+	mux   sync.Mutex
+}
 
-type connPresent struct{}
+func newLight() light {
+	return light{
+		state: off,
+	}
+}
+
+func (l *light) setState(s lightState) {
+	l.mux.Lock()
+	l.state = s
+	l.mux.Unlock()
+}
+
+func (l *light) getState() lightState {
+	return l.state
+}
 
 func main() {
-	light := OFF
-	clients := map[*websocket.Conn]connPresent{}
-
+	light := newLight()
 	http.HandleFunc("/led", func(w http.ResponseWriter, r *http.Request) {
-		conn, _ := upgrader.Upgrade(w, r, nil)
-		defer func() {
-			delete(clients, conn)
-		}()
-
-		// send initial state of led until client gets it
-		retry := 5
-		for {
-			if err := conn.WriteMessage(websocket.TextMessage, []byte(light)); err == nil {
-				clients[conn] = connPresent{}
-				break
-			}
-
-			if retry > 0 {
-				retry--
-			} else {
-				conn.Close()
-				return
-			}
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusForbidden)
+			fmt.Fprint(w, "Method not allowed")
+			return
 		}
 
-		for {
-			_, _, err := conn.ReadMessage()
-			if err != nil {
-				log.Println(err.Error())
-				return
-			}
-
-			if light != OFF {
-				light = OFF
-			} else {
-				light = ON
-			}
-
-			for c := range clients {
-				if err = c.WriteMessage(websocket.TextMessage, []byte(light)); err != nil {
-					log.Println(err.Error())
-				}
-			}
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, light.getState().string())
+	})
+	http.HandleFunc("/on", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			w.WriteHeader(http.StatusForbidden)
+			fmt.Fprint(w, "Method not allowed")
+			return
 		}
+
+		w.WriteHeader(http.StatusOK)
+		light.setState(on)
+		fmt.Fprint(w, "")
+	})
+	http.HandleFunc("/off", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			w.WriteHeader(http.StatusForbidden)
+			fmt.Fprint(w, "Method not allowed")
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		light.setState(off)
+		fmt.Fprint(w, "")
 	})
 
+	// build wasm file
+	err := os.Setenv("GOARCH", "wasm")
+	if err != nil {
+		log.Fatal("error setting env", err.Error())
+	}
+	err = os.Setenv("GOOS", "js")
+	if err != nil {
+		log.Fatal("error setting env", err.Error())
+	}
+	if output, err := exec.Command("go", "build", "-o", "static/main.wasm", "wasm/main.go").CombinedOutput(); err != nil {
+		log.Fatal(err.Error(), string(output))
+	}
+
+	// serve static site
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 

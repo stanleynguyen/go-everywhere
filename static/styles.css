@@ -1,0 +1,102 @@
+.frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 400px;
+  height: 400px;
+  margin-top: -200px;
+  margin-left: -200px;
+  border-radius: 2px;
+  box-shadow: 4px 8px 16px 0 black;
+  overflow: hidden;
+  color: #333;
+  font-family: 'Open Sans', Helvetica, sans-serif;
+  background: -webkit-gradient(
+    linear,
+    left bottom,
+    left top,
+    from(#061161),
+    to(#780206)
+  );
+  background: linear-gradient(to top, #061161, #780206);
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+}
+
+.bulb .front,
+.bulb .back {
+  position: absolute;
+  -webkit-transition: background 0.5s;
+  transition: background 0.5s;
+  background: black;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+.bulb .front::after,
+.bulb .back::after {
+  position: absolute;
+  -webkit-transition: border-top 0.5s;
+  transition: border-top 0.5s;
+  content: ' ';
+  border-top: 30px solid black;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  width: 30px;
+  top: 29px;
+  display: block;
+}
+
+.bulb {
+  position: relative;
+  height: 60px;
+  width: 50px;
+  margin-bottom: 5px;
+}
+
+.bulb.on .front {
+  -webkit-transition: background 0.5s;
+  transition: background 0.5s;
+  background: yellow;
+}
+
+.bulb.on .front::after {
+  -webkit-transition: border-top-color 0.5s;
+  transition: border-top-color 0.5s;
+  border-top-color: yellow;
+}
+
+.bulb.on .back,
+.bulb.on .back::after {
+  -webkit-transition: -webkit-filter 0.1s;
+  transition: -webkit-filter 0.1s;
+  transition: filter 0.1s;
+  transition: filter 0.1s, -webkit-filter 0.1s;
+  -webkit-filter: drop-shadow(0 0 50px yellow);
+  filter: drop-shadow(0 0 50px yellow);
+}
+
+.graypart {
+  background: lightgray;
+  margin: 1px;
+}
+
+.graypart.line {
+  width: 30px;
+  height: 5px;
+  border-radius: 5px;
+}
+
+.graypart.end {
+  width: 28px;
+  height: 10px;
+  border-radius: 0px 0px 50px 50px;
+}

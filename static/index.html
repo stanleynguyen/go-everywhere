@@ -1,5 +1,15 @@
-<button onclick="send()">Send</button>
-<pre id="light">OFF</pre>
+<link rel="stylesheet" href="/styles.css" />
+<div class="frame">
+    <div id="bulb" class="bulb">
+        <div class="back"></div>
+        <div class="front"></div>
+    </div>
+    <div class="line graypart"></div>
+    <div class="line graypart"></div>
+    <div class="end graypart"></div>
+</div>
+<button onclick="turnOn()">ON</button>
+<button onclick="turnOff()">OFF</button>
 <script src="wasm_exec.js"></script>
 <script>
     const go = new Go()

@@ -1,66 +1,61 @@
 // This is Go WASM equivalent of main.js file
 package main
 
-import "syscall/js"
+import (
+	"syscall/js"
 
-func newWS() js.Value {
-	wsURI := wsURI()
+	"github.com/stanleynguyen/go-everywhere/lighthttpcli"
+)
 
-	return js.Global().Get("WebSocket").New(wsURI)
-}
-
-func wsURI() string {
-	loc := js.Global().Get("window").Get("location")
-	wsURI := ""
-	if loc.Get("protocol").String() == "https:" {
-		wsURI = "wss:"
-	} else {
-		wsURI = "ws:"
-	}
-	wsURI += "//" + loc.Get("host").String()
-	wsURI += loc.Get("pathname").String() + "led"
-
-	return wsURI
-}
-
-func newOpenHandler() js.Func {
+func getStateBtnHandlerFunc(state string, cli lighthttpcli.LightHttpCli) js.Func {
 	return js.FuncOf(
 		func(this js.Value, args []js.Value) interface{} {
-			println("Connected")
+			go func() {
+				err := cli.SetState(state)
+				if err != nil {
+					println(err.Error())
+				}
+			}()
 			return nil
-		})
+		},
+	)
 }
 
-func newMessageHandler(lightElem js.Value) js.Func {
+func getRefreshStateFunc(bulbElem js.Value, cli lighthttpcli.LightHttpCli) js.Func {
+	var prevState string
 	return js.FuncOf(
 		func(this js.Value, args []js.Value) interface{} {
-			event := args[0]
-			lightElem.Set("innerHTML", event.Get("data").String())
-			return nil
-		})
+			go func() {
+				state, err := cli.GetState()
+				if err != nil {
+					println(err.Error())
+				}
 
+				if state != prevState {
+					if state == lighthttpcli.StateOn {
+						bulbElem.Get("classList").Call("add", "on")
+					} else {
+						bulbElem.Get("classList").Call("remove", "on")
+					}
+				}
+			}()
+			return nil
+		},
+	)
 }
 
-func newSendHandler(ws js.Value) js.Func {
-	return js.FuncOf(
-		func(this js.Value, args []js.Value) interface{} {
-			ws.Call("send", "switch")
-			return nil
-		})
-}
+func setup() {
+	cli := lighthttpcli.NewCli(js.Global().Get("location").Get("origin").String())
+	bulbElem := js.Global().Get("document").Call("getElementById", "bulb")
 
-func registerCallbacks() {
-	ws := newWS()
-	lightElem := js.Global().Get("document").Call("getElementById", "light")
-
-	ws.Call("addEventListener", "open", newOpenHandler())
-	ws.Call("addEventListener", "message", newMessageHandler(lightElem))
-	js.Global().Set("send", newSendHandler(ws))
+	js.Global().Set("turnOn", getStateBtnHandlerFunc("on", cli))
+	js.Global().Set("turnOff", getStateBtnHandlerFunc("off", cli))
+	js.Global().Call("setInterval", getRefreshStateFunc(bulbElem, cli), 500)
 }
 
 func main() {
 	c := make(chan struct{}, 0)
-	registerCallbacks()
+	setup()
 	println("WASM Go initialized")
 	<-c
 }
