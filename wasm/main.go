@@ -37,6 +37,7 @@ func getRefreshStateFunc(bulbElem js.Value, cli lighthttpcli.LightHttpCli) js.Fu
 					} else {
 						bulbElem.Get("classList").Call("remove", "on")
 					}
+					prevState = state
 				}
 			}()
 			return nil
@@ -48,8 +49,8 @@ func setup() {
 	cli := lighthttpcli.NewCli(js.Global().Get("location").Get("origin").String())
 	bulbElem := js.Global().Get("document").Call("getElementById", "bulb")
 
-	js.Global().Set("turnOn", getStateBtnHandlerFunc("on", cli))
-	js.Global().Set("turnOff", getStateBtnHandlerFunc("off", cli))
+	js.Global().Set("turnOn", getStateBtnHandlerFunc(lighthttpcli.StateOn, cli))
+	js.Global().Set("turnOff", getStateBtnHandlerFunc(lighthttpcli.StateOff, cli))
 	js.Global().Call("setInterval", getRefreshStateFunc(bulbElem, cli), 500)
 }
 
