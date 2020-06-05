@@ -9,3 +9,9 @@
 ```bash
 ANDROID_HOME=$(pwd) gomobile build -ldflags "-X main.serverURL=<your server url>" -o light.apk github.com/stanleynguyen/go-everywhere/mobo
 ```
+
+### Flash to arduino
+
+```bash
+tinygo flash -target arduino uno/main.go
+```
