@@ -8,7 +8,9 @@ import (
 	"github.com/stanleynguyen/go-everywhere/lighthttpcli"
 )
 
-var cli = lighthttpcli.NewCli("http://localhost:8080")
+var serverURL = "http://localhost:8080" // Inject at build time with -ldflags "-X main.serverURL=http://something"
+
+var cli = lighthttpcli.NewCli(serverURL)
 
 func intervalStateRefresh() {
 	ticker := time.NewTicker(500 * time.Millisecond)

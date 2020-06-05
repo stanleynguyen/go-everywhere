@@ -11,7 +11,9 @@ import (
 	"golang.org/x/mobile/gl"
 )
 
-var lightHTTPCli = lighthttpcli.NewCli("http://localhost:8080")
+var serverURL = "http://localhost:8080" // Inject at build time with -ldflags "-X main.serverURL=http://something"
+
+var lightHTTPCli = lighthttpcli.NewCli(serverURL)
 
 func main() {
 	stateChan := make(chan string)
