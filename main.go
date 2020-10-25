@@ -7,6 +7,9 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+
+	"github.com/rakyll/statik/fs"
+	_ "github.com/stanleynguyen/go-everywhere/statik"
 )
 
 type lightState int
@@ -97,7 +100,8 @@ func main() {
 	}
 
 	// serve static site
-	fs := http.FileServer(http.Dir("static"))
+	statikFS, err := fs.New()
+	fs := http.FileServer(statikFS)
 	http.Handle("/", fs)
 
 	http.ListenAndServe(":8080", nil)
