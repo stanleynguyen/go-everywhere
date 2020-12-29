@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"sync"
 
 	"github.com/rakyll/statik/fs"
@@ -95,14 +94,11 @@ func main() {
 	if err != nil {
 		log.Fatal("error setting env", err.Error())
 	}
-	if output, err := exec.Command("go", "build", "-o", "static/main.wasm", "wasm/main.go").CombinedOutput(); err != nil {
-		log.Fatal(err.Error(), string(output))
-	}
 
 	// serve static site
 	statikFS, err := fs.New()
-	fs := http.FileServer(statikFS)
-	http.Handle("/", fs)
+	fileSys := http.FileServer(statikFS)
+	http.Handle("/", fileSys)
 
 	http.ListenAndServe(":8080", nil)
 }

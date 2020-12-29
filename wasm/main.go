@@ -51,7 +51,7 @@ func setup() {
 
 	js.Global().Set("turnOn", getStateBtnHandlerFunc(lighthttpcli.StateOn, cli))
 	js.Global().Set("turnOff", getStateBtnHandlerFunc(lighthttpcli.StateOff, cli))
-	js.Global().Call("setInterval", getRefreshStateFunc(bulbElem, cli), 500)
+	js.Global().Call("setInterval", getRefreshStateFunc(bulbElem, cli), 200)
 }
 
 func main() {
