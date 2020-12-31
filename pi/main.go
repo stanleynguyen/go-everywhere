@@ -11,7 +11,7 @@ import (
 )
 
 var serverURL = "http://localhost:8080" // Inject at build time with -ldflags "-X main.serverURL=http://something"
-var pinNumberStr = "21"                 // Inject at build time with -ldflags "-X main.pinNumber=21"
+var pinNumberStr = "16"                 // Inject at build time with -ldflags "-X main.pinNumber=21"
 
 var cli = lighthttpcli.NewCli(serverURL)
 
